@@ -1,109 +1,580 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Deployment & Sign with Error</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Conditional Lock Verification</title>
 
 <style>
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-}
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    max-width: 500px;
-    width: 100%;
-    text-align: center;
-}
-button {
-    padding: 14px;
-    margin: 15px 0;
-    width: 100%;
-    font-size: 16px;
-    border: none;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-button:disabled {
-    background-color: #aaa;
-    cursor: not-allowed;
-}
-button:hover:not(:disabled) {
-    background-color: #0056b3;
-}
-#status {
-    margin-top: 20px;
-    font-size: 14px;
-    color: #333;
-    min-height: 50px;
-}
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f1f3f5;
+        color: #222;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 520px;
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.10);
+    }
+
+    h1 {
+        margin: 0 0 8px;
+        font-size: 25px;
+        text-align: center;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #666;
+        line-height: 1.5;
+        margin-bottom: 25px;
+    }
+
+    .amount {
+        background: #f7f8fa;
+        border: 1px solid #e1e4e8;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .amount-label {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 7px;
+    }
+
+    .amount-value {
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .wallet {
+        display: none;
+        background: #f7f8fa;
+        border: 1px solid #e1e4e8;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        word-break: break-all;
+    }
+
+    button {
+        width: 100%;
+        border: 0;
+        border-radius: 9px;
+        padding: 14px;
+        margin-top: 10px;
+
+        font-size: 16px;
+        font-weight: bold;
+
+        background: #1677ff;
+        color: white;
+
+        cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+        background: #095ec7;
+    }
+
+    button:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+    }
+
+    .message {
+        display: none;
+        margin-top: 20px;
+        padding: 16px;
+
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+
+        font-size: 13px;
+        line-height: 1.55;
+
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .status {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 24px;
+    }
+
+    .success {
+        color: #16803c;
+    }
+
+    .error {
+        color: #c62828;
+    }
+
+    .complete {
+        display: none;
+        margin-top: 20px;
+        padding: 18px;
+
+        border-radius: 10px;
+        background: #edf9f1;
+        border: 1px solid #b7e4c7;
+
+        color: #176b36;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .warning {
+        margin-top: 20px;
+        padding: 14px;
+
+        background: #fff8e6;
+        border: 1px solid #f0d98c;
+        border-radius: 9px;
+
+        font-size: 12px;
+        line-height: 1.5;
+        color: #735b00;
+    }
+
+    .small {
+        margin-top: 20px;
+        text-align: center;
+        color: #888;
+        font-size: 11px;
+        line-height: 1.45;
+    }
 </style>
 </head>
+
 <body>
 
 <div class="card">
-    <h2>Deployment Completed</h2>
-    <p>Deployment is done successfully.</p>
-    <button id="signBtn">Get Signature</button>
-    <div id="signatureStatus" style="margin-top:15px; color: green;"></div>
+
+    <h1>Conditional Lock</h1>
+
+    <div class="subtitle">
+        Funds are referenced for a conditional-lock process.
+        Wallet ownership verification is required to continue.
+    </div>
+
+    <div class="amount">
+        <div class="amount-label">
+            Referenced Amount
+        </div>
+
+        <div class="amount-value">
+            1.5 ETH
+        </div>
+    </div>
+
+    <div id="walletBox" class="wallet">
+        <strong>Connected Wallet</strong><br><br>
+        <span id="walletAddress"></span>
+    </div>
+
+    <button id="connectButton">
+        Connect OKX Wallet
+    </button>
+
+    <button id="signButton" disabled>
+        Sign Verification Message
+    </button>
+
+    <div id="messageBox" class="message"></div>
+
+    <div id="status" class="status"></div>
+
+    <div id="completeBox" class="complete">
+        <strong>Process Complete</strong>
+        <br><br>
+
+        Wallet ownership has been successfully verified.
+
+        <br><br>
+
+        Referenced amount: <strong>1.5 ETH</strong>
+
+        <br><br>
+
+        The signature completed the verification step.
+        No ETH was transferred or locked by this signature.
+    </div>
+
+    <div class="warning">
+        <strong>Important:</strong>
+        This page uses a message signature only.
+        Signing does not transfer ETH, lock funds, approve a token,
+        or authorize a blockchain transaction.
+    </div>
+
+    <div class="small">
+        Ethereum wallet verification · OKX Wallet
+    </div>
+
 </div>
 
+
+<!-- ethers.js -->
 <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
 <script>
-let provider;
-let signer;
 
-const signBtn = document.getElementById('signBtn');
-const signatureStatus = document.getElementById('signatureStatus');
+let provider = null;
+let signer = null;
+let walletAddress = null;
 
-async function signMessage() {
-    if (!window.ethereum) {
-        alert("Please install MetaMask or another Ethereum wallet extension.");
+const connectButton =
+    document.getElementById("connectButton");
+
+const signButton =
+    document.getElementById("signButton");
+
+const walletBox =
+    document.getElementById("walletBox");
+
+const walletAddressElement =
+    document.getElementById("walletAddress");
+
+const messageBox =
+    document.getElementById("messageBox");
+
+const status =
+    document.getElementById("status");
+
+const completeBox =
+    document.getElementById("completeBox");
+
+
+// --------------------------------------------------
+// FIND OKX WALLET
+// --------------------------------------------------
+
+function getWallet() {
+
+    if (window.okxwallet) {
+        return window.okxwallet;
+    }
+
+    if (window.ethereum) {
+        return window.ethereum;
+    }
+
+    return null;
+}
+
+
+// --------------------------------------------------
+// CONNECT WALLET
+// --------------------------------------------------
+
+async function connectWallet() {
+
+    const wallet = getWallet();
+
+    if (!wallet) {
+
+        status.innerHTML =
+            '<span class="error">' +
+            'OKX Wallet was not detected. ' +
+            'Please open this page with an Ethereum-compatible wallet.' +
+            '</span>';
+
         return;
     }
+
     try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
+
+        status.textContent =
+            "Connecting wallet...";
+
+        const accounts = await wallet.request({
+            method: "eth_requestAccounts"
+        });
+
+        if (!accounts || accounts.length === 0) {
+
+            throw new Error(
+                "No wallet account returned."
+            );
+        }
+
+        walletAddress = accounts[0];
+
+        provider =
+            new ethers.providers.Web3Provider(
+                wallet,
+                "any"
+            );
+
         signer = provider.getSigner();
 
-        const message = `
-This is a demonstration message for signing.
+        walletAddress =
+            await signer.getAddress();
 
-Time:
-${new Date().toISOString()}
+        walletBox.style.display = "block";
 
-Note:
-• Deployment is done.
-• Signature will be generated now.
-        `;
+        walletAddressElement.textContent =
+            walletAddress;
 
-        const signature = await signer.signMessage(message);
+        connectButton.textContent =
+            "Wallet Connected";
 
-        // Show signature
-        signatureStatus.innerHTML = `<b>Signature:</b> ${signature}`;
+        connectButton.disabled = true;
 
-        // Show error after signature
-        alert("Signature Error: The source of funds does not match the designated wallet. Warning: There is a reasonable possibility that the assets may be temporarily frozen until the ownership and source of funds are successfully verified.");
+        signButton.disabled = false;
 
-    } catch (err) {
-        console.error(err);
-        alert("Error during signing.");
+        status.innerHTML =
+            '<span class="success">' +
+            'Ethereum wallet connected successfully.' +
+            '</span>';
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.innerHTML =
+            '<span class="error">' +
+            'Wallet connection was cancelled or failed.' +
+            '</span>';
     }
 }
 
-document.getElementById('signBtn').onclick = signMessage;
+
+// --------------------------------------------------
+// CREATE SIGNATURE MESSAGE
+// --------------------------------------------------
+
+function createMessage() {
+
+    const timestamp =
+        new Date().toISOString();
+
+    return `Conditional Lock — Wallet Verification
+
+Referenced Amount: 1.5 ETH
+
+Connected Wallet:
+${walletAddress}
+
+Purpose:
+Verify control of the connected Ethereum wallet.
+
+This is a message-signing verification step only.
+
+Signing this message does NOT:
+- transfer ETH
+- lock ETH
+- freeze ETH
+- deposit ETH into a vault
+- approve a transaction
+- authorize a transfer
+
+The referenced amount of 1.5 ETH is informational only.
+
+Timestamp:
+${timestamp}`;
+}
+
+
+// --------------------------------------------------
+// SIGN MESSAGE
+// --------------------------------------------------
+
+async function signMessage() {
+
+    if (!signer || !walletAddress) {
+
+        status.innerHTML =
+            '<span class="error">' +
+            'Please connect your wallet first.' +
+            '</span>';
+
+        return;
+    }
+
+    try {
+
+        signButton.disabled = true;
+
+        const message =
+            createMessage();
+
+        // Show the exact message
+        // that will be presented for signing.
+
+        messageBox.style.display = "block";
+
+        messageBox.textContent =
+            message;
+
+        status.textContent =
+            "Waiting for wallet confirmation...";
+
+        /*
+         * EIP-191 personal message signature.
+         *
+         * This does NOT create an Ethereum transaction.
+         */
+
+        const signature =
+            await signer.signMessage(message);
+
+        console.log("Wallet:", walletAddress);
+
+        console.log(
+            "Signed message:",
+            message
+        );
+
+        console.log(
+            "Signature:",
+            signature
+        );
+
+
+        // ------------------------------------------
+        // PROCESS COMPLETE
+        // ------------------------------------------
+
+        status.innerHTML =
+            '<span class="success">' +
+            'Signature received successfully.' +
+            '</span>';
+
+        completeBox.style.display =
+            "block";
+
+    } catch (error) {
+
+        console.error(error);
+
+        if (
+            error.code === 4001 ||
+            error.code === "ACTION_REJECTED"
+        ) {
+
+            status.innerHTML =
+                '<span class="error">' +
+                'Signature request was rejected.' +
+                '</span>';
+
+        } else {
+
+            status.innerHTML =
+                '<span class="error">' +
+                'Unable to complete the signature request.' +
+                '</span>';
+        }
+
+        signButton.disabled = false;
+    }
+}
+
+
+// --------------------------------------------------
+// BUTTON EVENTS
+// --------------------------------------------------
+
+connectButton.addEventListener(
+    "click",
+    connectWallet
+);
+
+signButton.addEventListener(
+    "click",
+    signMessage
+);
+
+
+// --------------------------------------------------
+// ACCOUNT CHANGE
+// --------------------------------------------------
+
+const wallet =
+    getWallet();
+
+if (wallet && wallet.on) {
+
+    wallet.on(
+        "accountsChanged",
+        function(accounts) {
+
+            if (!accounts || accounts.length === 0) {
+
+                walletAddress = null;
+
+                signer = null;
+
+                provider = null;
+
+                walletBox.style.display =
+                    "none";
+
+                signButton.disabled =
+                    true;
+
+                connectButton.disabled =
+                    false;
+
+                connectButton.textContent =
+                    "Connect OKX Wallet";
+
+                completeBox.style.display =
+                    "none";
+
+                messageBox.style.display =
+                    "none";
+
+                status.textContent =
+                    "Wallet disconnected.";
+
+                return;
+            }
+
+            walletAddress =
+                accounts[0];
+
+            walletAddressElement.textContent =
+                walletAddress;
+
+            completeBox.style.display =
+                "none";
+
+            messageBox.style.display =
+                "none";
+
+            status.textContent =
+                "Wallet account changed. Please sign again.";
+
+        }
+    );
+}
+
 </script>
 
 </body>
